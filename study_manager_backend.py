@@ -62,3 +62,33 @@ def search_web(query: str):
     if response.status_code != 200:
         raise HTTPException(status_code=400, detail="Failed to fetch web results.")
     return response.json()
+import time
+from fastapi import FastAPI
+from threading import Thread
+
+app = FastAPI()
+
+# Global variable to track the last time the server was active
+last_active_time = time.time()
+
+# Function to check the time of inactivity and make the app "sleep"
+def monitor_inactivity():
+    global last_active_time
+    while True:
+        # Check if the server has been inactive for more than 20 minutes (1200 seconds)
+        if time.time() - last_active_time > 1200:
+            print("Server is going to sleep due to inactivity.")
+            # Put the server into sleep mode (we're just simulating it here)
+            time.sleep(60)  # Sleep for 1 minute (you can adjust as needed)
+            print("Server is awake!")
+        time.sleep(10)  # Check every 10 seconds
+
+# Start the inactivity monitor in a separate thread
+Thread(target=monitor_inactivity, daemon=True).start()
+
+@app.get("/")
+async def root():
+    global last_active_time
+    last_active_time = time.time()  # Update the last active time when a request comes in
+    return {"message": "Server is active!"}
+
